@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Acesso Liberado | Gabarita INSS</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Montserrat:wght@700;800;900&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              brand: {
+                black: "#050505",
+                gold: "#FFD700",
+                darkGold: "#24210f",
+                surface: "#121212",
+                border: "#ffffff1a",
+              },
+            },
+            fontFamily: {
+              sans: ["Inter", "sans-serif"],
+              display: ["Montserrat", "sans-serif"],
+            },
+            animation: {
+              "fade-in-up": "fadeInUp 0.8s ease-out forwards",
+              "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+            },
+            keyframes: {
+              fadeInUp: {
+                "0%": { opacity: "0", transform: "translateY(20px)" },
+                "100%": { opacity: "1", transform: "translateY(0)" },
+              },
+            },
+          },
+        },
+      };
+    </script>
+
+    <!-- Supabase JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <script>
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://xjejhakmprkeuilwxmza.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_Lfb6Et158ZWrQCMcf5kdcQ_vXjJoajW';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        async function saveLead(event) {
+            event.preventDefault();
+            
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = 'Salvando...';
+            btn.disabled = true;
+
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('leads')
+                    .insert([
+                        { 
+                            name: name, 
+                            whatsapp: phone,
+                            products_access: ['primary_offer']
+                        }
+                    ]);
+
+                if (error) throw error;
+
+                localStorage.setItem('gabarita_access', 'true');
+
+                document.getElementById('leadForm').classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => {
+                    document.getElementById('leadForm').style.display = 'none';
+                    document.getElementById('mainContent').classList.remove('blur-sm', 'pointer-events-none');
+                    document.getElementById('mainContent').classList.add('animate-fade-in-up');
+                }, 500);
+
+            } catch (err) {
+                console.error('Erro:', err);
+                alert('Ocorreu um erro ao salvar seus dados. Tente novamente.');
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        function checkAccess() {
+            const hasAccess = localStorage.getItem('gabarita_access');
+            const form = document.getElementById('leadForm');
+            const content = document.getElementById('mainContent');
+
+            if (hasAccess) {
+                form.style.display = 'none';
+                content.classList.remove('blur-sm', 'pointer-events-none');
+            } else {
+                form.style.display = 'flex';
+                content.classList.add('blur-sm', 'pointer-events-none');
+            }
+        }
+
+        function maskPhone(input) {
+            let value = input.value.replace(/\D/g, '');
+            if (value.length > 11) value = value.slice(0, 11);
+            if (value.length > 2) value = `(${value.slice(0, 2)}) ` + value.slice(2);
+            if (value.length > 9) value = value.slice(0, 9) + '-' + value.slice(9);
+            input.value = value;
+        }
+
+        window.onload = checkAccess;
+    </script>
+
+    <style>
+      body {
+        background-color: #050505;
+        font-family: "Inter", sans-serif;
+        color: white;
+        overflow-x: hidden;
+      }
+
+      .glass-card {
+        background: rgba(18, 18, 18, 0.6);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      .glow-effect {
+        position: absolute;
+        width: 150px;
+        height: 150px;
+        background: #ffd700;
+        filter: blur(100px);
+        opacity: 0.15;
+        border-radius: 50%;
+        z-index: -1;
+        pointer-events: none;
+      }
+
+      .btn-gold {
+        background: linear-gradient(90deg, #ffd700 0%, #e6c200 100%);
+        display: inline-block;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+      }
+
+      .btn-gold::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          transparent,
+          rgba(255, 255, 255, 0.4),
+          transparent
+        );
+        transition: 0.5s;
+      }
+
+      .btn-gold:hover::after {
+        left: 100%;
+      }
+
+      .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px -5px rgba(255, 215, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body
+    class="min-h-screen flex flex-col items-center selection:bg-brand-gold selection:text-black relative"
+  >
+
+    <!-- LEAD CAPTURE MODAL -->
+    <div id="leadForm" class="fixed inset-0 z-50 bg-brand-black/90 backdrop-blur-md flex items-center justify-center p-4 transition-opacity duration-500">
+        <div class="bg-brand-surface border border-brand-border rounded-2xl p-8 max-w-md w-full shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-1 bg-gradient-to-r from-transparent via-brand-gold to-transparent"></div>
+            
+            <div class="text-center mb-6">
+                <div class="mx-auto w-12 h-12 bg-brand-gold/10 rounded-full flex items-center justify-center mb-4 text-brand-gold">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                </div>
+                <h2 class="font-display font-bold text-2xl text-white mb-2">Finalize seu Cadastro</h2>
+                <p class="text-gray-400 text-sm">Para liberar seu acesso exclusivo, confirme seus dados abaixo.</p>
+            </div>
+
+            <form onsubmit="saveLead(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wide">Nome Completo</label>
+                    <input type="text" id="name" required class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-gold focus:ring-1 focus:ring-brand-gold outline-none transition-all placeholder-gray-600" placeholder="Seu nome">
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-medium text-gray-400 mb-1 uppercase tracking-wide">WhatsApp</label>
+                    <input type="tel" id="phone" required oninput="maskPhone(this)" class="w-full bg-black/50 border border-white/10 rounded-lg px-4 py-3 text-white focus:border-brand-gold focus:ring-1 focus:ring-brand-gold outline-none transition-all placeholder-gray-600" placeholder="(11) 99999-9999">
+                </div>
+
+                <button type="submit" id="submitBtn" class="w-full btn-gold text-black font-bold py-3.5 px-6 rounded-xl mt-2">
+                    LIBERAR ACESSO AGORA
+                </button>
+                
+                <p class="text-[10px] text-center text-gray-600 mt-4">
+                    <svg class="w-3 h-3 inline-block mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg>
+                    Seus dados estão seguros e criptografados.
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT WRAPPER -->
+    <div id="mainContent" class="w-full flex flex-col items-center flex-grow transition-all duration-500 blur-sm pointer-events-none">
+
+    <!-- Background Accents -->
+    <div
+      class="fixed top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0"
+    >
+      <div class="glow-effect top-[-50px] left-[20%]"></div>
+      <div class="glow-effect bottom-[10%] right-[10%] opacity-10"></div>
+    </div>
+
+    <!-- Header -->
+    <header
+      class="w-full max-w-6xl mx-auto p-6 md:p-8 flex justify-center items-center z-10 relative animate-fade-in-up"
+      style="animation-delay: 0.1s"
+    >
+      <div
+        class="flex items-center gap-2 bg-brand-surface/50 px-5 py-2 rounded-full border border-brand-border"
+      >
+        <span class="font-display font-black text-xl tracking-wider text-white"
+          >GABARITA <span class="text-brand-gold">INSS</span></span
+        >
+        <div class="w-px h-6 bg-white/20 mx-1"></div>
+        <div
+          class="flex items-center text-xs font-semibold uppercase tracking-wide text-green-400 gap-1"
+        >
+          <svg class="w-4 h-4 fill-current" viewBox="0 0 20 20">
+            <path
+              fill-rule="evenodd"
+              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+              clip-rule="evenodd"
+            />
+          </svg>
+          Acesso Liberado
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main
+      class="flex-grow w-full max-w-5xl mx-auto px-6 py-8 md:py-12 flex flex-col items-center z-10 relative"
+    >
+      <!-- Hero Section -->
+      <div
+        class="text-center mb-16 animate-fade-in-up"
+        style="animation-delay: 0.2s"
+      >
+        <h1
+          class="font-display font-black text-3xl md:text-5xl lg:text-6xl mb-4 leading-tight"
+        >
+          Parabéns, <br class="md:hidden" />
+          <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-brand-gold to-yellow-200"
+            >Futuro Aprovado!</span
+          >
+        </h1>
+        <p
+          class="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto leading-relaxed"
+        >
+          Seu acesso foi liberado com sucesso. Escolha por onde começar sua
+          jornada rumo à aprovação.
+        </p>
+      </div>
+
+      <!-- Bento Grid -->
+      <div
+        class="grid grid-cols-1 md:grid-cols-2 gap-6 w-full animate-fade-in-up"
+        style="animation-delay: 0.4s"
+      >
+        <!-- Card 1: Sistema de Questões -->
+        <div
+          class="group glass-card rounded-2xl p-8 relative overflow-hidden transition-all duration-300 hover:border-brand-gold/30 hover:shadow-[0_0_30px_rgba(255,215,0,0.1)] flex flex-col justify-between h-auto md:h-[400px]"
+        >
+          <div
+            class="absolute -right-10 -top-10 w-40 h-40 bg-brand-gold/10 rounded-full blur-2xl group-hover:bg-brand-gold/20 transition-all duration-500"
+          ></div>
+
+          <div class="relative z-10">
+            <div
+              class="w-16 h-16 bg-brand-darkGold rounded-xl border border-brand-gold/20 flex items-center justify-center mb-6 shadow-inner"
+            >
+              <svg
+                class="w-8 h-8 text-brand-gold animate-pulse-slow"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                />
+              </svg>
+            </div>
+
+            <h2
+              class="font-display font-bold text-2xl md:text-3xl mb-3 text-white"
+            >
+              Sistema de Questões
+            </h2>
+            <p class="text-gray-400 leading-relaxed">
+              Acesse a plataforma oficial, inicie seus simulados e acompanhe seu
+              desempenho com relatórios detalhados.
+            </p>
+          </div>
+
+          <div class="mt-8 relative z-10">
+            <a
+              href="https://gabaritainss.vercel.app/"
+              target="_blank"
+              class="w-full btn-gold text-black font-bold py-4 px-6 rounded-xl text-center flex items-center justify-center gap-2 group-hover:scale-[1.02] transition-transform"
+            >
+              ACESSAR PLATAFORMA
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M14 5l7 7m0 0l-7 7m7-7H3"
+                />
+              </svg>
+            </a>
+            <p class="text-xs text-center text-gray-500 mt-3 font-medium">
+              Acesso imediato
+            </p>
+          </div>
+        </div>
+
+        <!-- Card 2: Bônus & Materiais -->
+        <div
+          class="group glass-card rounded-2xl p-8 relative overflow-hidden transition-all duration-300 hover:bg-brand-surface hover:border-white/20 flex flex-col justify-between h-auto md:h-[400px]"
+        >
+          <div class="relative z-10">
+            <div
+              class="w-16 h-16 bg-white/5 rounded-xl border border-white/10 flex items-center justify-center mb-6"
+            >
+              <svg
+                class="w-8 h-8 text-gray-300"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                />
+              </svg>
+            </div>
+
+            <h2
+              class="font-display font-bold text-2xl md:text-3xl mb-3 text-white"
+            >
+              Bônus & Materiais
+            </h2>
+            <p class="text-gray-400 leading-relaxed">
+              Baixe suas planilhas de cronograma, ebooks complementares e todo o
+              material extra do curso.
+            </p>
+          </div>
+
+          <div class="mt-8 relative z-10">
+            <a
+              href="https://drive.google.com/drive/folders/1I3mMCU4cDKPyGhUfMktmdAMFuHcARk2w?usp=drive_link"
+              target="_blank"
+              class="w-full bg-transparent border border-white/20 hover:border-brand-gold hover:text-brand-gold text-white font-bold py-4 px-6 rounded-xl text-center flex items-center justify-center gap-2 transition-all duration-300 group-hover:scale-[1.02]"
+            >
+              BAIXAR MATERIAIS
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+                />
+              </svg>
+            </a>
+            <p class="text-xs text-center text-gray-500 mt-3 font-medium">
+              Link seguro Google Drive
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer
+      class="w-full max-w-6xl mx-auto p-8 text-center border-t border-brand-border mt-auto z-10 relative animate-fade-in-up"
+      style="animation-delay: 0.6s"
+    >
+      <p class="text-gray-600 text-sm mb-2">
+        &copy; 2024 Gabarita INSS. Todos os direitos reservados.
+      </p>
+      <a
+        href="https://wa.me/"
+        target="_blank"
+        class="text-gray-500 hover:text-brand-gold text-sm transition-colors flex items-center justify-center gap-2"
+      >
+        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+          <path
+            d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"
+          />
+        </svg>
+        Precisa de ajuda?
+      </a>
+    </footer>
+    </div> <!-- End Main Content Wrapper -->
+  </body>
+</html>
